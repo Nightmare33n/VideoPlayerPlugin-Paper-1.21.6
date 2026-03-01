@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "receptor",
+	"version": "${version}",
+	"name": "Video Receptor",
+	"description": "Client receptor for VideoPlayerPlugin (Paper): receives play/stop/volume payloads and renders video overlay.",
+	"authors": [
+		"andre"
+	],
+	"contact": {
+		"homepage": "https://example.invalid",
+		"sources": "https://example.invalid"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/receptor/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.receptor.Receptor"
+		],
+		"client": [
+			"com.receptor.ReceptorClient"
+		],
+		"fabric-datagen": [
+			"com.receptor.ReceptorDataGenerator"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.6",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

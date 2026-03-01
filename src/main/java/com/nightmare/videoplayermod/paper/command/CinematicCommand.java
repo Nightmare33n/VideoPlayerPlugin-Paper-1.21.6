@@ -2,9 +2,11 @@ package com.nightmare.videoplayermod.paper.command;
 
 import com.nightmare.videoplayermod.paper.VideoPlayerPlugin;
 import com.nightmare.videoplayermod.paper.config.VideoRegistry;
+import com.nightmare.videoplayermod.paper.network.DirectPayloadSender;
 import com.nightmare.videoplayermod.paper.network.PayloadWriter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -24,7 +26,7 @@ import java.util.Set;
 
 public class CinematicCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> ROOT_SUBCOMMANDS = List.of("play", "stop", "list", "volume");
+    private static final List<String> ROOT_SUBCOMMANDS = List.of("play", "stop", "list", "volume", "reload");
     private static final List<String> TARGET_SUGGESTIONS = List.of("@a", "@p", "@s");
 
     private final VideoPlayerPlugin plugin;
@@ -38,7 +40,7 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.RED + "Usage: /cinematic <play|stop|list|volume>");
+            sender.sendMessage(Component.text("Usage: /cinematic <play|stop|list|volume|reload>", NamedTextColor.RED));
             return true;
         }
 
@@ -48,8 +50,9 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
             case "stop" -> handleStop(sender, args);
             case "list" -> handleList(sender);
             case "volume" -> handleVolume(sender, args);
+            case "reload" -> handleReload(sender);
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown subcommand. Use: /cinematic <play|stop|list|volume>");
+                sender.sendMessage(Component.text("Unknown subcommand. Use: /cinematic <play|stop|list|volume|reload>", NamedTextColor.RED));
                 yield true;
             }
         };
@@ -57,40 +60,34 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
 
     private boolean handlePlay(CommandSender sender, String[] args) {
         if (!sender.hasPermission("videoplayermod.play")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission.");
+            sender.sendMessage(Component.text("You do not have permission.", NamedTextColor.RED));
             return true;
         }
 
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /cinematic play <id> [targets]");
+            sender.sendMessage(Component.text("Usage: /cinematic play <id> [targets]", NamedTextColor.RED));
             return true;
         }
 
         String id = args[1];
         Map<String, String> videos = videoRegistry.loadVideos();
 
-        plugin.getLogger().info("[DEBUG][Command] /cinematic play '" + id + "' requested by " + sender.getName() + ". Loaded IDs: " + videos.size());
-
         if (!videos.containsKey(id)) {
-            plugin.getLogger().warning("[DEBUG][Command] Unknown video ID '" + id + "'. Available IDs: " + videos.keySet());
-            sender.sendMessage(ChatColor.RED + "Unknown video ID: " + id);
+            sender.sendMessage(Component.text("Unknown video ID: " + id, NamedTextColor.RED));
             return true;
         }
 
         String source = videos.get(id);
         if (source == null || source.isBlank()) {
-            plugin.getLogger().warning("[DEBUG][Command] Video ID '" + id + "' resolved to empty source");
-            sender.sendMessage(ChatColor.RED + "Video source is empty for ID: " + id);
+            sender.sendMessage(Component.text("Video source is empty for ID: " + id, NamedTextColor.RED));
             return true;
         }
 
         String targetInput = args.length >= 3 ? args[2] : "@a";
         Collection<Player> targets = resolveTargets(sender, targetInput);
 
-        plugin.getLogger().info("[DEBUG][Command] Broadcasting PlayVideoPayload id='" + id + "' to " + targets.size() + " player(s) (" + targetInput + ")");
-
         if (targets.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "No target players matched.");
+            sender.sendMessage(Component.text("No target players matched.", NamedTextColor.RED));
             return true;
         }
 
@@ -99,15 +96,19 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
                 .writeUtf(source)
                 .toByteArray();
 
+        int sent = 0;
         for (Player player : targets) {
-            plugin.getLogger().info("[DEBUG][Command] Sending play payload to player '" + player.getName() + "'");
-            player.sendPluginMessage(plugin, VideoPlayerPlugin.CHANNEL_PLAY_VIDEO, payload);
+            if (DirectPayloadSender.send(plugin, player, VideoPlayerPlugin.CHANNEL_PLAY_VIDEO, payload, plugin.getLogger())) {
+                sent++;
+            }
         }
 
+        plugin.getLogger().info("Playing '" + id + "' — sent to " + sent + "/" + targets.size() + " player(s)");
+
         if ("@a".equals(targetInput)) {
-            sender.sendMessage(ChatColor.GREEN + "Playing '" + id + "' for all players");
+            sender.sendMessage(Component.text("Playing '" + id + "' for all players", NamedTextColor.GREEN));
         } else {
-            sender.sendMessage(ChatColor.GREEN + "Playing '" + id + "' for " + targets.size() + " player(s)");
+            sender.sendMessage(Component.text("Playing '" + id + "' for " + targets.size() + " player(s)", NamedTextColor.GREEN));
         }
 
         return true;
@@ -115,29 +116,27 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleStop(CommandSender sender, String[] args) {
         if (!sender.hasPermission("videoplayermod.stop")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission.");
+            sender.sendMessage(Component.text("You do not have permission.", NamedTextColor.RED));
             return true;
         }
 
         String targetInput = args.length >= 2 ? args[1] : "@a";
         Collection<Player> targets = resolveTargets(sender, targetInput);
 
-        plugin.getLogger().info("[DEBUG][Command] Broadcasting StopVideoPayload to " + targets.size() + " player(s) (" + targetInput + ")");
-
         if (targets.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "No target players matched.");
+            sender.sendMessage(Component.text("No target players matched.", NamedTextColor.RED));
             return true;
         }
 
         byte[] payload = new byte[0];
         for (Player player : targets) {
-            player.sendPluginMessage(plugin, VideoPlayerPlugin.CHANNEL_STOP_VIDEO, payload);
+            DirectPayloadSender.send(plugin, player, VideoPlayerPlugin.CHANNEL_STOP_VIDEO, payload, plugin.getLogger());
         }
 
         if ("@a".equals(targetInput)) {
-            sender.sendMessage(ChatColor.GREEN + "Stopped video for all players");
+            sender.sendMessage(Component.text("Stopped video for all players", NamedTextColor.GREEN));
         } else {
-            sender.sendMessage(ChatColor.GREEN + "Stopped video for " + targets.size() + " player(s)");
+            sender.sendMessage(Component.text("Stopped video for " + targets.size() + " player(s)", NamedTextColor.GREEN));
         }
 
         return true;
@@ -145,31 +144,33 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleList(CommandSender sender) {
         if (!sender.hasPermission("videoplayermod.list")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission.");
+            sender.sendMessage(Component.text("You do not have permission.", NamedTextColor.RED));
             return true;
         }
 
         Map<String, String> videos = videoRegistry.loadVideos();
         if (videos.isEmpty()) {
-            sender.sendMessage(ChatColor.YELLOW + "No videos registered. Add .mp4 files to config/videoplayermod/videos/ or add URLs to urls.properties");
+            sender.sendMessage(Component.text(
+                    "No videos registered. Add files to config/videoplayermod/videos/ or URLs to urls.properties",
+                    NamedTextColor.YELLOW));
             return true;
         }
 
-        sender.sendMessage(ChatColor.GOLD + "Registered videos:");
+        sender.sendMessage(Component.text("Registered videos:", NamedTextColor.GOLD));
         for (Map.Entry<String, String> entry : videos.entrySet()) {
-            sender.sendMessage(ChatColor.GRAY + "  " + entry.getKey() + " = " + entry.getValue());
+            sender.sendMessage(Component.text("  " + entry.getKey() + " = " + entry.getValue(), NamedTextColor.GRAY));
         }
         return true;
     }
 
     private boolean handleVolume(CommandSender sender, String[] args) {
         if (!sender.hasPermission("videoplayermod.volume")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission.");
+            sender.sendMessage(Component.text("You do not have permission.", NamedTextColor.RED));
             return true;
         }
 
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /cinematic volume <0-100>");
+            sender.sendMessage(Component.text("Usage: /cinematic volume <0-100> [targets]", NamedTextColor.RED));
             return true;
         }
 
@@ -177,23 +178,42 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
         try {
             level = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
-            sender.sendMessage(ChatColor.RED + "Volume must be a number between 0 and 100.");
+            sender.sendMessage(Component.text("Volume must be a number between 0 and 100.", NamedTextColor.RED));
             return true;
         }
 
         if (level < 0 || level > 100) {
-            sender.sendMessage(ChatColor.RED + "Volume must be between 0 and 100.");
+            sender.sendMessage(Component.text("Volume must be between 0 and 100.", NamedTextColor.RED));
+            return true;
+        }
+
+        String targetInput = args.length >= 3 ? args[2] : "@a";
+        Collection<Player> targets = resolveTargets(sender, targetInput);
+
+        if (targets.isEmpty()) {
+            sender.sendMessage(Component.text("No target players matched.", NamedTextColor.RED));
             return true;
         }
 
         float volume = level / 100.0f;
         byte[] payload = new PayloadWriter().writeFloat(volume).toByteArray();
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendPluginMessage(plugin, VideoPlayerPlugin.CHANNEL_SET_VOLUME, payload);
+        for (Player player : targets) {
+            DirectPayloadSender.send(plugin, player, VideoPlayerPlugin.CHANNEL_SET_VOLUME, payload, plugin.getLogger());
         }
 
-        sender.sendMessage(ChatColor.GREEN + "Video volume set to " + level + "%");
+        sender.sendMessage(Component.text("Video volume set to " + level + "%", NamedTextColor.GREEN));
+        return true;
+    }
+
+    private boolean handleReload(CommandSender sender) {
+        if (!sender.hasPermission("videoplayermod.command")) {
+            sender.sendMessage(Component.text("You do not have permission.", NamedTextColor.RED));
+            return true;
+        }
+        videoRegistry.invalidateCache();
+        int count = videoRegistry.loadVideos().size();
+        sender.sendMessage(Component.text("Video registry reloaded: " + count + " entries", NamedTextColor.GREEN));
         return true;
     }
 
@@ -252,8 +272,13 @@ public class CinematicCommand implements CommandExecutor, TabCompleter {
             return filter(buildTargetSuggestions(), args[1]);
         }
 
-        if ("volume".equals(sub) && args.length == 2) {
-            return filter(List.of("0", "25", "50", "75", "100"), args[1]);
+        if ("volume".equals(sub)) {
+            if (args.length == 2) {
+                return filter(List.of("0", "25", "50", "75", "100"), args[1]);
+            }
+            if (args.length == 3) {
+                return filter(buildTargetSuggestions(), args[2]);
+            }
         }
 
         return Collections.emptyList();
