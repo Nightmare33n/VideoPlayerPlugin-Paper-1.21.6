@@ -97,3 +97,15 @@ publishing {
 		// retrieving dependencies.
 	}
 }
+
+def combinedBuildsDir = layout.projectDirectory.dir('../BuildsCombined')
+
+tasks.register('copyModJarToCombined', Copy) {
+	dependsOn(tasks.named('remapJar'))
+	from(tasks.named('remapJar').flatMap { it.archiveFile })
+	into(combinedBuildsDir)
+}
+
+tasks.named('build') {
+	finalizedBy(tasks.named('copyModJarToCombined'))
+}
