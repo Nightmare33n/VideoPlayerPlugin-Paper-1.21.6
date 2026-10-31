@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.system.MemoryUtil;
 
 import net.fabricmc.loader.api.FabricLoader;
@@ -73,7 +73,7 @@ public final class VideoPlaybackManager {
 
     /* ---------- render state (render thread only) ---------- */
     private DynamicTexture texture;
-    private ResourceLocation textureId;
+    private Identifier textureId;
     private Path tempDownloadedFile;
     private Path tempRawFile;           // pre-decoded raw frames
     private volatile int videoWidth;
@@ -688,7 +688,7 @@ public final class VideoPlaybackManager {
         NativeImage img = new NativeImage(w, h, false);
         bulkCopy(img, pixels, w, h);
         if (texture != null) { texture.close(); texture = null; }
-        if (textureId == null) textureId = ResourceLocation.parse("receptor:video_overlay");
+        if (textureId == null) textureId = Identifier.parse("receptor:video_overlay");
         texture = new DynamicTexture(() -> "receptor_video", img);
         mc.getTextureManager().register(textureId, texture);
         texture.upload();

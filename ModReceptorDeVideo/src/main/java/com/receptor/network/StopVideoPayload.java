@@ -4,12 +4,12 @@ import com.receptor.VideoChannels;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record StopVideoPayload() implements CustomPacketPayload {
 
     public static final StopVideoPayload INSTANCE = new StopVideoPayload();
-    public static final Type<StopVideoPayload> TYPE = new Type<>(ResourceLocation.parse(VideoChannels.STOP_VIDEO));
+    public static final Type<StopVideoPayload> TYPE = new Type<>(Identifier.parse(VideoChannels.STOP_VIDEO));
 
     public static final StreamCodec<FriendlyByteBuf, StopVideoPayload> CODEC = StreamCodec.of(
             (buf, payload) -> {

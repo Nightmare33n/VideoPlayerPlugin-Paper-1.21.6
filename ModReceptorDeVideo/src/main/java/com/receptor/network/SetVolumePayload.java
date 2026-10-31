@@ -4,11 +4,11 @@ import com.receptor.VideoChannels;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record SetVolumePayload(float volume) implements CustomPacketPayload {
 
-    public static final Type<SetVolumePayload> TYPE = new Type<>(ResourceLocation.parse(VideoChannels.SET_VOLUME));
+    public static final Type<SetVolumePayload> TYPE = new Type<>(Identifier.parse(VideoChannels.SET_VOLUME));
 
     public static final StreamCodec<FriendlyByteBuf, SetVolumePayload> CODEC = StreamCodec.of(
             (buf, payload) -> buf.writeFloat(payload.volume),

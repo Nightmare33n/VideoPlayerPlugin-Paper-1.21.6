@@ -4,13 +4,13 @@ import com.receptor.VideoChannels;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.nio.charset.StandardCharsets;
 
 public record PlayVideoPayload(String id, String source) implements CustomPacketPayload {
 
-    public static final Type<PlayVideoPayload> TYPE = new Type<>(ResourceLocation.parse(VideoChannels.PLAY_VIDEO));
+    public static final Type<PlayVideoPayload> TYPE = new Type<>(Identifier.parse(VideoChannels.PLAY_VIDEO));
 
     public static final StreamCodec<FriendlyByteBuf, PlayVideoPayload> CODEC = StreamCodec.of(
             (buf, payload) -> {

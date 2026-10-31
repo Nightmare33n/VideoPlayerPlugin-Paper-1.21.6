@@ -1,10 +1,12 @@
 package com.receptor.video;
 
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import com.receptor.Receptor;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 public final class VideoHudOverlay {
 
@@ -12,7 +14,7 @@ public final class VideoHudOverlay {
     }
 
     public static void register() {
-        HudRenderCallback.EVENT.register(VideoHudOverlay::render);
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(Receptor.MOD_ID, "video_overlay"), VideoHudOverlay::render);
     }
 
     private static void render(GuiGraphics drawContext, DeltaTracker tickCounter) {

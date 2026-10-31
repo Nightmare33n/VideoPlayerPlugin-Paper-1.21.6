@@ -1,4 +1,4 @@
-# VideoPlayerPlugin (Paper 1.21.6)
+# VideoPlayerPlugin (Paper 1.21.11)
 
 Plugin Paper que adapta la parte servidor de `VideoPlayerMod`.
 
@@ -36,7 +36,7 @@ El JAR se genera en `build/libs/`.
 
 ## Instalación
 
-1. Copia el JAR del plugin en la carpeta `plugins/` del servidor Paper 1.21.6.
+1. Copia el JAR del plugin en la carpeta `plugins/` del servidor Paper 1.21.11.
 2. Inicia el servidor una vez para crear `config/videoplayermod/`.
 3. Coloca videos `.mp4` en `config/videoplayermod/videos/` o usa `urls.properties`.
 4. Asegúrate de que los jugadores tengan instalado el cliente `VideoPlayerMod`.

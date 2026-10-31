@@ -4,14 +4,14 @@ import com.receptor.VideoChannels;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.nio.charset.StandardCharsets;
 
 public record TransferStartPayload(String videoId, String fileName, long fileSize, int chunkSize, int totalChunks)
         implements CustomPacketPayload {
 
-    public static final Type<TransferStartPayload> TYPE = new Type<>(ResourceLocation.parse(VideoChannels.TRANSFER_START));
+    public static final Type<TransferStartPayload> TYPE = new Type<>(Identifier.parse(VideoChannels.TRANSFER_START));
 
     public static final StreamCodec<FriendlyByteBuf, TransferStartPayload> CODEC = StreamCodec.of(
             (buf, payload) -> {

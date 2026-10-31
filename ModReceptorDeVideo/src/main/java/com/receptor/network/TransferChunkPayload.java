@@ -4,12 +4,12 @@ import com.receptor.VideoChannels;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record TransferChunkPayload(int chunkIndex, byte[] data)
         implements CustomPacketPayload {
 
-    public static final Type<TransferChunkPayload> TYPE = new Type<>(ResourceLocation.parse(VideoChannels.TRANSFER_CHUNK));
+    public static final Type<TransferChunkPayload> TYPE = new Type<>(Identifier.parse(VideoChannels.TRANSFER_CHUNK));
 
     public static final StreamCodec<FriendlyByteBuf, TransferChunkPayload> CODEC = StreamCodec.of(
             (buf, payload) -> {
