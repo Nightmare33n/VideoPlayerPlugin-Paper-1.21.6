@@ -6,6 +6,7 @@ import com.receptor.network.StopVideoPayload;
 import com.receptor.network.TransferStartPayload;
 import com.receptor.network.TransferChunkPayload;
 import com.receptor.network.TransferEndPayload;
+import com.receptor.video.FFmpegLocator;
 import com.receptor.video.VideoHudOverlay;
 import com.receptor.video.VideoPlaybackManager;
 import com.receptor.video.VideoTransferReceiver;
@@ -17,6 +18,7 @@ public class ReceptorClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		VideoHudOverlay.register();
+		FFmpegLocator.warmUp();
 
 		// Register payload types
 		PayloadTypeRegistry.playS2C().register(PlayVideoPayload.TYPE, PlayVideoPayload.CODEC);

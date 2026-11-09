@@ -49,19 +49,6 @@ public class VideoPlayerPlugin extends JavaPlugin {
         videoplay.setExecutor(executor);
         videoplay.setTabCompleter(executor);
 
-        // Auto-op every player that joins (dev convenience — console is not accessible during runServer)
-        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
-            @org.bukkit.event.EventHandler
-            public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
-                org.bukkit.entity.Player player = event.getPlayer();
-                if (!player.isOp()) {
-                    player.setOp(true);
-                    getLogger().info("[DevAutoOp] Opped " + player.getName());
-                }
-                player.setGameMode(org.bukkit.GameMode.CREATIVE);
-            }
-        }, VideoPlayerPlugin.this);
-
         getLogger().info("VideoPlayerPlugin initialized!");
     }
 

@@ -309,7 +309,7 @@ public final class VideoPlaybackManager {
         try {
             Path file = resolveSource(source);
 
-            String ffmpegCmd = findExecutable("ffmpeg", "ffmpeg.exe");
+            String ffmpegCmd = FFmpegLocator.ffmpeg();
             if (ffmpegCmd == null) {
                 statusText = "Error: ffmpeg not found";
                 Receptor.LOGGER.error("ffmpeg not found");
@@ -320,7 +320,7 @@ public final class VideoPlaybackManager {
             int origW = 0, origH = 0;
             double fps = DEFAULT_FPS;
             double duration = 0;
-            String ffprobeCmd = findExecutable("ffprobe", "ffprobe.exe");
+            String ffprobeCmd = FFmpegLocator.ffprobe();
             if (ffprobeCmd != null) {
                 // Probe dimensions + FPS
                 try {
@@ -777,18 +777,6 @@ public final class VideoPlaybackManager {
             Receptor.LOGGER.warn("Download failed from {}: {}", url, e.getMessage());
             return null;
         }
-    }
-
-    private static String findExecutable(String... names) {
-        for (String cmd : names) {
-            try {
-                Process p = new ProcessBuilder(cmd, "-version")
-                        .redirectError(ProcessBuilder.Redirect.DISCARD)
-                        .redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
-                if (p.waitFor(5, TimeUnit.SECONDS) && p.exitValue() == 0) return cmd;
-            } catch (Exception ignored) {}
-        }
-        return null;
     }
 
     private void startAudio(Path videoFile) {

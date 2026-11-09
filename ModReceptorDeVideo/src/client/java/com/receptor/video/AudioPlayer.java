@@ -56,9 +56,9 @@ public final class AudioPlayer {
 
     private void audioLoop(Path videoFile) {
         try {
-            String ffmpegCmd = findFFmpeg();
+            String ffmpegCmd = FFmpegLocator.ffmpeg();
             if (ffmpegCmd == null) {
-                Receptor.LOGGER.warn("ffmpeg not found in PATH — audio playback disabled. Install ffmpeg for audio support.");
+                Receptor.LOGGER.warn("ffmpeg not found — audio playback disabled.");
                 return;
             }
 
@@ -113,19 +113,6 @@ public final class AudioPlayer {
             buffer[i] = (byte) (sample & 0xFF);
             buffer[i + 1] = (byte) ((sample >> 8) & 0xFF);
         }
-    }
-
-    private String findFFmpeg() {
-        for (String cmd : new String[]{"ffmpeg", "ffmpeg.exe"}) {
-            try {
-                Process p = new ProcessBuilder(cmd, "-version")
-                        .redirectError(ProcessBuilder.Redirect.DISCARD)
-                        .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                        .start();
-                if (p.waitFor() == 0) return cmd;
-            } catch (Exception ignored) { }
-        }
-        return null;
     }
 
     private void cleanup() {

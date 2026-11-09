@@ -47,7 +47,16 @@ dependencies {
 
 	include(implementation("org.jcodec:jcodec:0.2.5"))
 	include(implementation("org.jcodec:jcodec-javase:0.2.5"))
-	
+
+	// Bundled ffmpeg/ffprobe executables (extracted by JavaCPP at runtime) so players
+	// don't need ffmpeg installed on their system.
+	include(implementation("org.bytedeco:javacpp:1.5.11"))
+	include(implementation("org.bytedeco:ffmpeg:7.1-1.5.11"))
+	["windows-x86_64", "linux-x86_64", "macosx-x86_64", "macosx-arm64"].each { platform ->
+		include(implementation("org.bytedeco:javacpp:1.5.11:${platform}"))
+		include(implementation("org.bytedeco:ffmpeg:7.1-1.5.11:${platform}"))
+	}
+
 }
 
 processResources {
